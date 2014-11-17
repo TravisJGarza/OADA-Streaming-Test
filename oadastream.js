@@ -1,33 +1,77 @@
 //Tests two see if a database is OADA compliant
-function oadastream(){
+//function oadastream(){
+	var request = require('superagent');
+	var expect = require('expect')
+	//var app = require('../server.js').app;
 
 	//Arbitartily instaniate future function parameters
 	//Needs a URL parameter still
-	var size = 5; //param of how many data points in each JSON object, ie Force, Accel, Str, Concentration, time
-	var timestep = 1 / 1000; //param of how often to execute in milliseconds
-	var duration = 10; //param of how long to run the program in milliseconds
+	
 
-
+/*
 	var file = {"datapoints":[{}]};
 	file.datapoints.push({generator(file, size)});
 	//file = setInterval(generator(N) , timestep) //generator will be a function in the future
 	//Does js bring the newly generated array to this level?
 	//file.push(value) //contraversy on speed of push source: http://stackoverflow.com/questions/351409/appending-to-array
+ */
+	describe('OADAstream test server', function() {
+  		var id;
 
+	  	//testing the POST function of the JSON API
+	  	it('Post JSON yield', function(done) {
+	    	request.post('http://localhost:3000/resources/stream/')
+	      	.send({
+	        	name: 'travis', occupation: 'student'
+	      	})
+	      	.end(function(e, res) {
+	        	expect(e).to.be(null);
+	        	expect(res.body._id).to.not.be(null);
+	        	expect(res.body.length).to.be(1);
+	        	expect(res.body[0]._id.length).to.be(24)
+	        	id = res.body[0]._id;
 
-}
+	        	done();
+	      	})
+	  	});
 
-//Generates JSON objects to test the database
-function generator(array, size){
-	var array = {"data1": "1", "data2": "2", "data3": "data3": "3", "dataN": "N"}
-	var i = 0;
-	while (i < size)
-	{
-			
+	  	//testing the GET function of the JSON API
+	  	it('Gets JSON yeild posted', function(done) {
+	    	request.get('http://localhost:3000/resources/stream/' + id)
+	      	.end(function(e, res) {
+	        	expect(e).to.be(null);
+	        	expect(typeof res.body).to.be('object')
+	        	expect(res.body._id.length).to.be(24);
+	        	expect(res.body._id).to.be(id)
 
+	        	done();
+	      	})
+	  	});
 
-	}
+	  	//testing the PUT function of the JSON API
+	  	it('Update JSON yeild', function(done) {
+	    	request.put('http://localhost:3000/resources/stream/' + id)
+	      	.send({
+	        	name: 'travis', occupation: 'computer engineer'
+	      	})
+	      	.end(function(e, res) {
+	        	expect(e).to.equal(null);
+	        	expect(typeof res.body).to.be.a('object');
+	        	expect(res.body.msg).to.be.a('success');
 
+	        	done();
+	      	})
+	  	});
 
-	return array;
-}
+	  	//testing the DELETE function of the JSON API
+	  	it('Delete JSON yeild', function(done) {
+	    	request.del('http://localhost:3000/resources/stream/' + id)
+	      	.end(function(err, res) {
+	        	expect(err).to.be(null);
+
+	        	done();
+	      	});
+	  	});
+	});
+
+//}
